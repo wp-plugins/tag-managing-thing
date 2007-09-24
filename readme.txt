@@ -1,6 +1,6 @@
 === Tag Managing Thing ===
 Contributors: christined
-Tags: tagging, administration
+Tags: tags, admin, categories
 Requires at least: 2.3
 Tested up to: 2.3b3
 Stable tag: trunk
