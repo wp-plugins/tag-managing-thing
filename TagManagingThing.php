@@ -127,24 +127,19 @@ function tmt_thing_admin() {
 	
 	$tags = (array) get_terms($taxonomy,'get=all');
 
-	echo '<fieldset class="options"><legend>' . __("Edit Post Taxonomy") .'</legend>';
-
+	echo '<h2>' . __("Edit Post Taxonomy") . '</h2>';
+	echo '<div id="tmtLeftPanel" style="float:left; border-right:1px solid #ddd; padding-right:10px; margin-right:10px; width:250px;">';
 	if ($taxonomies) {
 		?>
 		<h3><?php _e('Select Taxonomy') ?></h3>
 		<form action="<?php echo $siteurl ?>/wp-admin/edit.php">
-		<select name="selectedTaxonomy" id="selectedTaxonomy">
-			<option value="">-- <?php _e('Please Select') ?> --</option>
-			<?php foreach($taxonomies as $taxo) {
-				echo "<option value=\"$taxo\"";
-				if ($taxo == $taxonomy) echo " selected";
-				echo ">$taxo</option>";
-			} ?>
-		</select>
-		<input type="hidden" name="action" value="switchtaxonomy">
-		<input type="hidden" name="page" value="TagManagingThing.php">
-		<input type="submit" value="<?php _e('Switch') ?>" />
-		</form>
+		Currently modifying the <strong><?php echo $taxonomy ?></strong> taxonomy.  Switch to <?php 
+		foreach ($taxonomies as $t) {
+			if ($t != $taxonomy) {
+				echo "<a href=\"?selectedTaxonomy=$t&action=switchtaxonomy&page=TagManagingThing.php\">$t</a>";
+			}
+		}
+		?>?
 		<?php
 	}
 
@@ -152,28 +147,32 @@ function tmt_thing_admin() {
 	?>
 		<h3><?php _e('Select Term') ?></h3>
 		<form action="<?php echo $siteurl ?>/wp-admin/edit.php">
-		<select name="edittag" id="edittag" onChange="Things_GetTagData()">
+		<select name="edittag" id="edittag" onChange="Things_GetTagData()" size="12" style="width:250px">
 		<option value="">-- <?php _e('Please Select') ?> --</option>
 		<?php
 		foreach($tags as $tag) {
-			echo "<option value=\"$tag->term_id\">$tag->name</option>";
+			echo "<option value=\"$tag->term_id\">$tag->name ($tag->count uses)</option>";
 		}?>
 		</select>
+		</div>
+		<div id="tmtRightPanel" style="float:left">
 		<div id="editTagPanel" style="display:none">
 		
+		<h4>Edit Term</h4>
 		<table>
 		<tr><td><label for="renametag">Name</label></td>
 			<td><input type="text" name="renametag" id="renametag"></td>
 		</tr>
 		<tr><td><label for="renameslug">Slug</label></td>
-			<td><input type="text" name="renameslug" id="renameslug"></td>
+			<td><input type="text" name="renameslug" id="renameslug"> <input type="submit" name="updateaction" value="<?php _e("Save") ?>"></td>
 		</tr>
 		</table>
 
-		<input type="submit" name="updateaction" value="<?php _e("Save") ?>"> <input type="submit" name="updateaction" value="<?php _e("Delete Term") ?>" OnClick="javascript:return(confirm('<?php _e("Are you sure you want to delete this term?")?>'))">
+		<h4>Delete Term</h4>
+		<input type="submit" name="updateaction" value="<?php _e("Delete Term") ?>" OnClick="javascript:return(confirm('<?php _e("Are you sure you want to delete this term?")?>'))">
 
-		<h4>Change Term Taxonomy</h4>
-		<p>Changing the taxonomy of a term will change it to belong to the selected taxonomy, move the existing associations, and remove it from this taxonomy.  If the term already exists,  it will be merged into the existing term.</p>
+		<h4>Switch Term Taxonomy</h4>
+		<p>Changing the taxonomy of a term will change it to belong to the selected taxonomy, move the existing associations, and remove<br/> it from this taxonomy.  If the term already exists,  it will be merged into the existing term.</p>
 		<select name="newtaxonomy">
 		<?php foreach($taxonomies as $taxo) {
 			if ($taxo != $taxonomy) {
@@ -184,6 +183,7 @@ function tmt_thing_admin() {
 		<input type="submit" name="updateaction" value="<?php _e("Change Taxonomy")?>" />
 
 		<h4>Split a Tag</h4>
+		<p>Splitting a tag will replace this tag with the comma separated list of tags below.</p>
 		<input type="text" name="split" id="split"><input type="submit" name="updateaction" value="<?php _e("Split") ?>">
 
 		<h4>Merge Tags</h4>
@@ -200,11 +200,11 @@ function tmt_thing_admin() {
 		<input type="hidden" name="page" value="TagManagingThing.php">
 		</div>
 		</form>
+		</div>
 		<?php
 	} else {
 		echo '<p>' . __('No tags are in use at the moment.') . '</p>';
 	}
-	echo "</fieldset>";
 }
 
 	function tmt_thing_ajax_client() {
