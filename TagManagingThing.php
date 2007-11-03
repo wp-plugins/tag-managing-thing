@@ -3,7 +3,7 @@
 Plugin Name: Tag Managing Thing
 Plugin URI: http://www.neato.co.nz/wordpress-things/tag-managing-thing
 Description: A thing for managing your tags.  Things like renaming and deletions.
-Version: beta 2
+Version: beta 3
 Author: Christine From The Internet
 Author URI: http://www.neato.co.nz
 */
@@ -134,8 +134,13 @@ function tmt_thing_admin() {
 		<h3><?php _e('Select Taxonomy') ?></h3>
 		<form action="<?php echo $siteurl ?>/wp-admin/edit.php">
 		Currently modifying the <strong><?php echo $taxonomy ?></strong> taxonomy.  Switch to <?php 
+		$first = true;
 		foreach ($taxonomies as $t) {
 			if ($t != $taxonomy) {
+				if (!$first) {
+					echo ",";
+					$first = false;
+				}
 				echo "<a href=\"?selectedTaxonomy=$t&action=switchtaxonomy&page=TagManagingThing.php\">$t</a>";
 			}
 		}
