@@ -3,7 +3,7 @@
 Plugin Name: Tag Managing Thing
 Plugin URI: http://www.neato.co.nz/wordpress-things/tag-managing-thing
 Description: A thing for managing your tags.  Things like renaming and deletions.
-Version: 1.0
+Version: 1.0.1
 Author: Christine From The Internet
 Author URI: http://www.neato.co.nz
 */
@@ -128,8 +128,8 @@ function tmt_thing_admin() {
 	$tags = (array) get_terms($taxonomy,'get=all');
 
 	echo '<h2>' . __("Edit Post Taxonomy") . '</h2>';
-	echo '<div id="tmtLeftPanel" style="float:left; border-right:1px solid #ddd; padding-right:10px; margin-right:10px; width:250px;">';
 	echo "<form action=\"$siteurl/wp-admin/edit.php\">";
+	echo '<div id="tmtLeftPanel" style="float:left; border-right:1px solid #ddd; padding-right:10px; margin-right:10px; width:250px;">';
 	if ($taxonomies) {
 		?>
 		<h3><?php _e('Select Taxonomy') ?></h3>
@@ -141,7 +141,7 @@ function tmt_thing_admin() {
 					echo ",";
 					$first = false;
 				}
-				echo "<a href=\"?selectedTaxonomy=$t&action=switchtaxonomy&page=TagManagingThing.php\">$t</a>";
+				echo "<a href=\"?selectedTaxonomy=$t&amp;action=switchtaxonomy&amp;page=TagManagingThing.php\">$t</a>";
 			}
 		}
 		?>?</p>
@@ -151,30 +151,28 @@ function tmt_thing_admin() {
 	if ($tags) {
 	?>
 		<h3><?php _e('Select Term') ?></h3>
-			<select name="edittag" id="edittag" onChange="Things_GetTagData()" size="12" style="width:250px">
+			<select name="edittag" id="edittag" onchange="Things_GetTagData()" size="12" style="width:250px">
 			<option value="">-- <?php _e('Please Select') ?> --</option>
 			<?php
 			foreach($tags as $tag) {
 				echo "<option value=\"$tag->term_id\">$tag->name ($tag->count uses)</option>";
 			}?>
 			</select>
-			</form>
 		</div><!--end tmtLeftPanel -->
 		<div id="tmtRightPanel" style="float:left">
 			<div id="editTagPanel" style="display:none">		
-				<form action="<?php echo $siteurl ?>/wp-admin/edit.php">
 				<h4>Edit Term</h4>
 				<table>
 				<tr><td><label for="renametag">Name</label></td>
-					<td><input type="text" name="renametag" id="renametag"></td>
+					<td><input type="text" name="renametag" id="renametag" /></td>
 				</tr>
 				<tr><td><label for="renameslug">Slug</label></td>
-					<td><input type="text" name="renameslug" id="renameslug"> <input type="submit" name="updateaction" value="<?php _e("Save") ?>"></td>
+					<td><input type="text" name="renameslug" id="renameslug" /> <input type="submit" name="updateaction" value="<?php _e("Save") ?>" /></td>
 				</tr>
 				</table>
 		
 				<h4>Delete Term</h4>
-				<input type="submit" name="updateaction" value="<?php _e("Delete Term") ?>" OnClick="javascript:return(confirm('<?php _e("Are you sure you want to delete this term?")?>'))">
+				<input type="submit" name="updateaction" value="<?php _e("Delete Term") ?>" onclick="javascript:return(confirm('<?php _e("Are you sure you want to delete this term?")?>'))" />
 		
 				<h4>Switch Term Taxonomy</h4>
 				<p>Changing the taxonomy of a term will change it to belong to the selected taxonomy, move the existing associations, and remove<br/> it from this taxonomy.  If the term already exists,  it will be merged into the existing term.</p>
@@ -189,24 +187,24 @@ function tmt_thing_admin() {
 		
 				<h4>Split a Tag</h4>
 				<p>Splitting a tag will replace this tag with the comma separated list of tags below.</p>
-				<input type="text" name="split" id="split"><input type="submit" name="updateaction" value="<?php _e("Split") ?>">
+				<input type="text" name="split" id="split" /><input type="submit" name="updateaction" value="<?php _e("Split") ?>" />
 		
 				<h4>Merge Tags</h4>
 				<p>Merging will delete the selected tags and associate their posts with this tag.</p>
-				<select name="mergeTags[]" multiple="true" rows="1">
+				<select name="mergeTags[]" multiple="multiple">
 				<?php
 				foreach($tags as $tag) {
 					echo "<option value=\"$tag->term_id\">$tag->name</option>";
 				}?>
 				</select><input type="submit" name="updateaction" value="<?php _e("Merge") ?>" />
 		
-				<input type="hidden" id="updateTaxonomy" name="selectedTaxonomy" value="<?php echo $taxonomy?>">
-				<input type="hidden" name="action" value="savetagupdate">
-				<input type="hidden" name="page" value="TagManagingThing.php">
-				</form>
+				<input type="hidden" id="updateTaxonomy" name="selectedTaxonomy" value="<?php echo $taxonomy?>" />
+				<input type="hidden" name="action" value="savetagupdate" />
+				<input type="hidden" name="page" value="TagManagingThing.php" />
 			</div>
 		</div>
 		<br clear="all" />
+		</form>
 	</div>
 		<?php
 	} else {
