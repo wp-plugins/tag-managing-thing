@@ -3,7 +3,7 @@
 Plugin Name: Tag Managing Thing
 Plugin URI: http://www.neato.co.nz/wordpress-things/tag-managing-thing
 Description: A thing for managing your tags.  Things like renaming and deletions.
-Version: 1.0.1
+Version: 1.0.2
 Author: Christine From The Internet
 Author URI: http://www.neato.co.nz
 */
@@ -16,113 +16,123 @@ function tmt_thing_admin() {
 
 	echo '<div class="wrap">';
 
-	if ($_GET["action"] == "savetagupdate") {
-		$tagid =$_GET["edittag"];
-
-		if (!is_numeric($tagid)) {
-			echo "<div class=\"error\"><p>An invalid term ID was passed in.</p></div>";
-			return;
-		}
+	if ($_GET["updateaction"] == __('Remove Unused Terms')) {
+		$tags = (array) get_terms($taxonomy,'get=all');
 		
-		if($_GET["updateaction"] == "Save") {
-			$tag = $_GET["renametag"];
-			$slug = $_GET["renameslug"];
-
-			$args = array();
-			$args["slug"]=$slug;
-			$args["name"]=$tag;
-			wp_update_term($tagid, $taxonomy,$args);
+		foreach($tags as $tag) {
+			if ($tag->count == 0) {
+				wp_delete_term($tag->term_id, $taxonomy);
+			}
 		}
-		
-		if ($_GET["updateaction"] == "Change Taxonomy") {
-			$newtaxo = $_GET["newtaxonomy"];
-			if (!is_taxonomy($newtaxo)) {
-				echo "<div class='error'>$newtaxo is not a valid taxonomy</div>";
+	} else {
+		if ($_GET["action"] == "savetagupdate") {
+			$tagid =$_GET["edittag"];
+	
+			if (!is_numeric($tagid)) {
+				echo "<div class=\"error\"><p>An invalid term ID was passed in.</p></div>";
 				return;
 			}
 			
-			$term = get_term($tagid, $taxonomy);
-			$taggedObjects = get_objects_in_term($tagid, $taxonomy);
-
-			wp_delete_term($tagid, $taxonomy);
-			
-			$check = is_term($term->name, $newtaxo);
-			if (is_null($check)) {
-				$args =array();
-				$args['slug'] = $term->slug;
-				$newterm = wp_insert_term($term->name,$newtaxo, $args);
-			} else {
-				$newterm = get_term($check, $newtaxo);
+			if($_GET["updateaction"] == __("Save")) {
+				$tag = $_GET["renametag"];
+				$slug = $_GET["renameslug"];
+	
+				$args = array();
+				$args["slug"]=$slug;
+				$args["name"]=$tag;
+				wp_update_term($tagid, $taxonomy,$args);
 			}
 			
-			if ($taggedObjects) {
-				foreach ($taggedObjects as $taggedObjId) {
-					wp_set_object_terms($taggedObjId,$newterm[term_id],$newtaxo,true);
+			if ($_GET["updateaction"] == __("Change Taxonomy")) {
+				$newtaxo = $_GET["newtaxonomy"];
+				if (!is_taxonomy($newtaxo)) {
+					echo "<div class='error'>$newtaxo is not a valid taxonomy</div>";
+					return;
 				}
-			}
-		}
-
-		if ($_GET["updateaction"] == "Split") {
-			$taggedObjects = get_objects_in_term($tagid, $taxonomy);
-			$tag = $_GET["split"];
-
-			$tagset = explode(",", $tag);
-			$tagids = array();
-
-			foreach ($tagset as $tag) {
-				$check = is_term($tag,$taxonomy);
-				if (is_null($check)){
-					$tagObj = wp_insert_term($tag,$taxonomy);
-					$tagids[] = $tagObj[term_id];
+				
+				$term = get_term($tagid, $taxonomy);
+				$taggedObjects = get_objects_in_term($tagid, $taxonomy);
+	
+				wp_delete_term($tagid, $taxonomy);
+				
+				$check = is_term($term->name, $newtaxo);
+				if (is_null($check)) {
+					$args =array();
+					$args['slug'] = $term->slug;
+					$newterm = wp_insert_term($term->name,$newtaxo, $args);
 				} else {
-					echo "$tag already exists as a tag.  You should merge it.<br />";
+					$newterm = get_term($check, $newtaxo);
 				}
-			}
-
-			$keepold = false;
-			foreach($tagids as $newtagid) {
+				
 				if ($taggedObjects) {
 					foreach ($taggedObjects as $taggedObjId) {
-						wp_set_object_terms($taggedObjId,$newtagid,$taxonomy,true);
+						wp_set_object_terms($taggedObjId,$newterm[term_id],$newtaxo,true);
 					}
-				} 
-				
-				if ($newtagid == $tagid) {
-					$keepold = true;
 				}
 			}
-
-			// If a tag is split, and not retained, then remove it.
-			if (!$keepold) {
+	
+			if ($_GET["updateaction"] == __("Split")) {
+				$taggedObjects = get_objects_in_term($tagid, $taxonomy);
+				$tag = $_GET["split"];
+	
+				$tagset = explode(",", $tag);
+				$tagids = array();
+	
+				foreach ($tagset as $tag) {
+					$check = is_term($tag,$taxonomy);
+					if (is_null($check)){
+						$tagObj = wp_insert_term($tag,$taxonomy);
+						$tagids[] = $tagObj[term_id];
+					} else {
+						echo "$tag already exists as a tag.  You should merge it.<br />";
+					}
+				}
+	
+				$keepold = false;
+				foreach($tagids as $newtagid) {
+					if ($taggedObjects) {
+						foreach ($taggedObjects as $taggedObjId) {
+							wp_set_object_terms($taggedObjId,$newtagid,$taxonomy,true);
+						}
+					} 
+					
+					if ($newtagid == $tagid) {
+						$keepold = true;
+					}
+				}
+	
+				// If a tag is split, and not retained, then remove it.
+				if (!$keepold) {
+					wp_delete_term($tagid, $taxonomy);
+				}
+				echo "<div id=\"message\"  class=\"updated fade\"><p>Tags have been updated.</p></div>";
+			}
+			
+			if ($_GET["updateaction"] == __("Merge")) {
+				$mergeTags = $_GET["mergeTags"];
+				$postids = array();
+	
+				foreach($mergeTags as $mergeTag) {
+					if ($mergeTag != $tagid) {
+						$postids = array_merge($postids, get_objects_in_term($mergeTag, $taxonomy));
+						wp_delete_term($mergeTag, $taxonomy);
+					}
+				}
+	
+				$postids = array_flip(array_flip($postids));
+				$tag = get_term($tagid, $taxonomy);
+				foreach($postids as $postid) {
+					wp_set_object_terms($postid,$tag->slug,$taxonomy,true);
+				}
+			}
+	
+			if ($_GET["updateaction"] ==__("Delete Term")) {
 				wp_delete_term($tagid, $taxonomy);
+				echo "<div id=\"message\" class=\"updated fade\"><p>Term has been deleted.</p></div>";
 			}
-			echo "<div id=\"message\"  class=\"updated fade\"><p>Tags have been updated.</p></div>";
-		}
-		
-		if ($_GET["updateaction"] == __("Merge")) {
-			$mergeTags = $_GET["mergeTags"];
-			$postids = array();
-
-			foreach($mergeTags as $mergeTag) {
-				if ($mergeTag != $tagid) {
-					$postids = array_merge($postids, get_objects_in_term($mergeTag, $taxonomy));
-					wp_delete_term($mergeTag, $taxonomy);
-				}
-			}
-
- 			$postids = array_flip(array_flip($postids));
- 			$tag = get_term($tagid, $taxonomy);
-			foreach($postids as $postid) {
-				wp_set_object_terms($postid,$tag->slug,$taxonomy,true);
-			}
-		}
-
-		if ($_GET["updateaction"] ==__("Delete Term")) {
-			wp_delete_term($tagid, $taxonomy);
-			echo "<div id=\"message\" class=\"updated fade\"><p>Term has been deleted.</p></div>";
 		}
 	}
-
+		
 	$taxonomies = get_object_taxonomies('post');
 	
 	$tags = (array) get_terms($taxonomy,'get=all');
@@ -158,6 +168,9 @@ function tmt_thing_admin() {
 				echo "<option value=\"$tag->term_id\">$tag->name ($tag->count uses)</option>";
 			}?>
 			</select>
+		<h3><?php _e('Remove Unused Terms') ?></h3>
+			<p><?php _e('Remove all of the terms from the current taxonomy which are currently not being used.')?></p>
+			<input type="submit" name="updateaction" value="<?php _e('Remove Unused Terms') ?>" onclick="javascript:return(confirm('<?php _e("Are you sure you want to remove all unused terms from the current taxonomy?")?>'))" />
 		</div><!--end tmtLeftPanel -->
 		<div id="tmtRightPanel" style="float:left">
 			<div id="editTagPanel" style="display:none">		
